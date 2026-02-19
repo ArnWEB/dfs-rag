@@ -37,3 +37,70 @@
 2026-02-19 15:39:49,837 - ingestion.processor - ERROR - Batch 3 upload failed: Upload failed after 3 attempts: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
 2026-02-19 15:39:50,536 - ingestion.processor - INFO - No more pending files. Ingestion complete!
 2026-02-19 15:39:50,539 - ingestion.main - INFO - Ingestion completed successfully
+2026-02-19 17:53:49,688 - ingestion.main - INFO - ============================================================
+2026-02-19 17:53:49,689 - ingestion.main - INFO - NVIDIA RAG Ingestion Started
+2026-02-19 17:53:49,690 - ingestion.main - INFO - ============================================================
+2026-02-19 17:53:49,690 - ingestion.main - INFO - Database: ..\bootstrap\manifest.db
+2026-02-19 17:53:49,690 - ingestion.main - INFO - Ingestor: http://localhost:8082
+2026-02-19 17:53:49,690 - ingestion.main - INFO - Collection: documents
+2026-02-19 17:53:49,690 - ingestion.main - INFO - Batch size: 100
+2026-02-19 17:53:49,704 - ingestion.main - INFO - Database stats: {'total': 573, 'pending': 273, 'completed': 0, 'failed': 300, 'ingesting': 0}
+2026-02-19 17:53:49,704 - ingestion.main - INFO - Creating collection: documents
+2026-02-19 17:53:53,808 - ingestion.main - ERROR - Failed to create collection: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/collections (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:53:53,809 - ingestion.main - WARNING - Collection creation failed (may already exist): Failed to create collection: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/collections (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:53:53,811 - ingestion.processor - INFO - Starting ingestion from offset=0, batch=0
+2026-02-19 17:53:53,812 - ingestion.processor - INFO - Batch size: 100, Checkpoint interval: 10
+2026-02-19 17:53:53,820 - ingestion.processor - INFO - Processing batch 1: 100 files
+2026-02-19 17:54:00,146 - ingestion.main - ERROR - Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:00,155 - ingestion.processor - WARNING - Upload attempt 1/3 failed: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:05,278 - ingestion.main - ERROR - Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:05,279 - ingestion.processor - WARNING - Upload attempt 2/3 failed: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:11,411 - ingestion.main - ERROR - Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:11,421 - ingestion.processor - WARNING - Upload attempt 3/3 failed: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:11,422 - ingestion.processor - ERROR - Batch 1 upload failed: Upload failed after 3 attempts: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:14,632 - ingestion.processor - INFO - Processing batch 2: 73 files
+2026-02-19 17:54:19,731 - ingestion.processor - WARNING - Interrupted by user. Saving checkpoint...
+2026-02-19 17:54:19,736 - ingestion.processor - INFO - Checkpoint saved. Resume with: --resume --checkpoint-file ingestion_checkpoint.json
+2026-02-19 17:54:19,737 - ingestion.main - WARNING - Ingestion interrupted by user
+2026-02-19 17:54:23,068 - ingestion.main - INFO - ============================================================
+2026-02-19 17:54:23,069 - ingestion.main - INFO - NVIDIA RAG Ingestion Started
+2026-02-19 17:54:23,069 - ingestion.main - INFO - ============================================================
+2026-02-19 17:54:23,069 - ingestion.main - INFO - Database: ..\bootstrap\manifest.db
+2026-02-19 17:54:23,069 - ingestion.main - INFO - Ingestor: http://localhost:8082
+2026-02-19 17:54:23,069 - ingestion.main - INFO - Collection: documents
+2026-02-19 17:54:23,069 - ingestion.main - INFO - Batch size: 100
+2026-02-19 17:54:23,069 - ingestion.main - INFO - None
+2026-02-19 17:54:23,074 - ingestion.main - INFO - Database stats: {'total': 573, 'pending': 100, 'completed': 0, 'failed': 400, 'ingesting': 73}
+2026-02-19 17:54:23,074 - ingestion.main - INFO - Creating collection: documents
+2026-02-19 17:54:27,172 - ingestion.main - ERROR - Failed to create collection: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/collections (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:27,174 - ingestion.main - WARNING - Collection creation failed (may already exist): Failed to create collection: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/collections (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:27,176 - ingestion.processor - INFO - Starting ingestion from offset=0, batch=0
+2026-02-19 17:54:27,177 - ingestion.processor - INFO - Batch size: 100, Checkpoint interval: 10
+2026-02-19 17:54:27,194 - ingestion.processor - INFO - Processing batch 1: 100 files
+2026-02-19 17:54:40,501 - ingestion.main - ERROR - Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:40,515 - ingestion.processor - WARNING - Upload attempt 1/3 failed: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:45,596 - ingestion.main - ERROR - Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:45,608 - ingestion.processor - WARNING - Upload attempt 2/3 failed: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:51,707 - ingestion.main - ERROR - Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:51,709 - ingestion.processor - WARNING - Upload attempt 3/3 failed: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:51,709 - ingestion.processor - ERROR - Batch 1 upload failed: Upload failed after 3 attempts: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:54:52,539 - ingestion.processor - INFO - No more pending files. Ingestion complete!
+2026-02-19 17:54:52,541 - ingestion.main - INFO - Ingestion completed successfully
+2026-02-19 17:55:32,350 - ingestion.main - INFO - ============================================================
+2026-02-19 17:55:32,350 - ingestion.main - INFO - NVIDIA RAG Ingestion Started
+2026-02-19 17:55:32,351 - ingestion.main - INFO - ============================================================
+2026-02-19 17:55:32,351 - ingestion.main - INFO - Database: ..\bootstrap\manifest.db
+2026-02-19 17:55:32,351 - ingestion.main - INFO - Ingestor: http://localhost:8082
+2026-02-19 17:55:32,351 - ingestion.main - INFO - Collection: documents
+2026-02-19 17:55:32,351 - ingestion.main - INFO - Batch size: 100
+2026-02-19 17:55:32,352 - ingestion.main - INFO - Proxy HTTP: Not set
+2026-02-19 17:55:32,352 - ingestion.main - INFO - Proxy HTTPS: http://10.10.1.10:1080
+2026-02-19 17:55:32,352 - ingestion.main - INFO - {'https': 'http://10.10.1.10:1080'}
+2026-02-19 17:55:32,354 - ingestion.main - INFO - Database stats: {'total': 573, 'pending': 0, 'completed': 0, 'failed': 500, 'ingesting': 73}
+2026-02-19 17:55:32,354 - ingestion.main - INFO - Creating collection: documents
+2026-02-19 17:55:36,461 - ingestion.main - ERROR - Failed to create collection: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/collections (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:55:36,463 - ingestion.main - WARNING - Collection creation failed (may already exist): Failed to create collection: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/collections (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-02-19 17:55:36,465 - ingestion.processor - INFO - Starting ingestion from offset=0, batch=0
+2026-02-19 17:55:36,467 - ingestion.processor - INFO - Batch size: 100, Checkpoint interval: 10
+2026-02-19 17:55:36,484 - ingestion.processor - INFO - No more pending files. Ingestion complete!
+2026-02-19 17:55:36,500 - ingestion.main - INFO - Ingestion completed successfully

@@ -110,8 +110,12 @@ class Settings(BaseSettings):
         description="Generate document summary",
     )
     blocking: bool = Field(
+        default=False,
+        description="Wait for ingestion to complete (async by default)",
+    )
+    skip_existing: bool = Field(
         default=True,
-        description="Wait for ingestion to complete",
+        description="Skip files already ingested in the collection",
     )
     
     # Feature flags

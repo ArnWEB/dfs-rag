@@ -111,6 +111,19 @@ class IngestionRunner:
                 except Exception as e:
                     logger.warning(f"Collection creation failed (may already exist): {e}")
             
+            # Fetch existing documents to skip already ingested files
+            existing_docs: set[str] = set()
+            try:
+                logger.info(
+                    f"Fetching existing documents from collection '{self.config.collection_name}' "
+                    f"to skip already ingested files..."
+                )
+                existing_docs = set(client.list_documents(self.config.collection_name))
+                if existing_docs:
+                    logger.info(f"Found {len(existing_docs)} already ingested documents")
+            except Exception as e:
+                logger.warning(f"Could not fetch existing documents: {e}")
+            
             # Load checkpoint if resuming
             offset = 0
             batch_num = 0
@@ -130,6 +143,7 @@ class IngestionRunner:
                 client=client,
                 checkpoint_manager=checkpoint_manager,
                 settings=self.config,
+                existing_docs=existing_docs,
             )
             
             final_stats = processor.run(offset=offset, batch_num=batch_num)
@@ -141,7 +155,7 @@ class IngestionRunner:
             if self.config.delete_collection:
                 try:
                     logger.info(f"Deleting collection: {self.config.collection_name}")
-                    client.delete_collection(self.config.collection_name)
+                    client.delete_collections([self.config.collection_name])
                 except Exception as e:
                     logger.error(f"Failed to delete collection: {e}")
             

@@ -21,6 +21,7 @@ class IngestionStats:
         self.total_processed = 0
         self.total_failed = 0
         self.total_completed = 0
+        self.total_skipped = 0
         self.batch_count = 0
         self.start_time = time.time()
     
@@ -47,6 +48,7 @@ class IngestionProcessor:
         client: IngestionClient,
         checkpoint_manager: CheckpointManager,
         settings: Settings,
+        existing_docs: set[str] | None = None,
     ):
         """Initialize processor.
         
@@ -55,11 +57,13 @@ class IngestionProcessor:
             client: NVIDIA RAG API client
             checkpoint_manager: Checkpoint manager
             settings: Application settings
+            existing_docs: Set of already ingested document names to skip
         """
         self.repository = repository
         self.client = client
         self.checkpoint_manager = checkpoint_manager
         self.settings = settings
+        self.existing_docs = existing_docs or set()
         self.stats = IngestionStats()
     
     def process_batch(
@@ -81,8 +85,26 @@ class IngestionProcessor:
         successful = []
         failed = []
         
-        # Mark all files as ingesting
+        # Filter out already ingested files
+        files_to_upload = []
         for file_record in files:
+            if file_record.file_name in self.existing_docs:
+                logger.info(f"Skipping already ingested: {file_record.file_name}")
+                self.repository.update_ingestion_status(
+                    file_record.file_path,
+                    status="completed"
+                )
+                self.stats.total_skipped += 1
+                successful.append(file_record.file_path)
+            else:
+                files_to_upload.append(file_record)
+        
+        if not files_to_upload:
+            logger.info(f"Batch {batch_num}: All files already ingested")
+            return successful, failed
+        
+        # Mark files as ingesting
+        for file_record in files_to_upload:
             self.repository.update_ingestion_status(
                 file_record.file_path,
                 status="ingesting"
@@ -92,7 +114,7 @@ class IngestionProcessor:
         existing_files = []
         missing_files = []
         
-        for file_record in files:
+        for file_record in files_to_upload:
             if self.repository.verify_file_exists(file_record.file_path):
                 existing_files.append(file_record)
             else:
@@ -117,7 +139,19 @@ class IngestionProcessor:
         
         # Upload with retry logic
         try:
-            self._upload_with_retry(file_paths, payload)
+            response = self._upload_with_retry(file_paths, payload)
+            
+            # Get task_id from response
+            task_id = (
+                (response or {}).get("task_id")
+                or (response or {}).get("task")
+                or (response or {}).get("id")
+            )
+            
+            if task_id:
+                # Poll for task completion
+                self.client.poll_task_status(task_id)
+                logger.info(f"Batch {batch_num}: Task {task_id} completed")
             
             # Mark all as completed
             for file_record in existing_files:
@@ -147,12 +181,15 @@ class IngestionProcessor:
         self,
         file_paths: list[Path],
         payload: dict,
-    ) -> None:
+    ) -> dict:
         """Upload files with retry logic.
         
         Args:
             file_paths: List of file paths
             payload: Upload payload
+            
+        Returns:
+            Response JSON from API
             
         Raises:
             IngestionError: If all retries exhausted
@@ -161,13 +198,13 @@ class IngestionProcessor:
         
         for attempt in range(self.settings.max_retries):
             try:
-                self.client.upload_documents(
+                response = self.client.upload_documents(
                     files=file_paths,
                     payload=payload,
                     timeout=self.settings.request_timeout,
                 )
                 logger.debug(f"Upload successful after {attempt + 1} attempt(s)")
-                return
+                return response
                 
             except IngestionError as e:
                 last_error = e
@@ -246,12 +283,16 @@ class IngestionProcessor:
             Ingestion statistics
         """
         self.stats = IngestionStats()
+        self.stats.total_skipped = 0  # Reset skipped count
         current_offset = offset
         current_batch = batch_num
         
         logger.info(f"Starting ingestion from offset={offset}, batch={batch_num}")
         logger.info(f"Batch size: {self.settings.batch_size}, "
                    f"Checkpoint interval: {self.settings.checkpoint_interval}")
+        
+        if self.existing_docs:
+            logger.info(f"Skipping {len(self.existing_docs)} already ingested documents")
         
         try:
             while True:
@@ -289,6 +330,7 @@ class IngestionProcessor:
                     logger.info(
                         f"Checkpoint saved: processed={self.stats.total_processed}, "
                         f"failed={self.stats.total_failed}, "
+                        f"skipped={self.stats.total_skipped}, "
                         f"success_rate={self.stats.success_rate:.1f}%"
                     )
                 
@@ -334,6 +376,7 @@ class IngestionProcessor:
         print("=" * 60)
         print(f"Total processed: {stats.total_processed}")
         print(f"Completed: {stats.total_completed}")
+        print(f"Skipped (already ingested): {stats.total_skipped}")
         print(f"Failed: {stats.total_failed}")
         print(f"Success rate: {stats.success_rate:.1f}%")
         print(f"Batches: {stats.batch_count}")
