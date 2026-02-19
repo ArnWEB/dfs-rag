@@ -57,11 +57,6 @@ class DirectoryWalker:
                     "root_path_not_found",
                     path=str(root_path),
                 )
-                yield FileRecord.create_permission_error(
-                    root_path,
-                    is_directory=True,
-                    error_message="Root path does not exist",
-                )
                 return
             
             # Test read access
@@ -74,11 +69,6 @@ class DirectoryWalker:
                 error_type="PermissionError",
                 likely_cause="Service account lacks read permissions on root",
                 developer_action="Check DFS share ACLs and mount options for service account",
-            )
-            yield FileRecord.create_permission_error(
-                root_path,
-                is_directory=True,
-                error_message="Root directory permission denied",
             )
             return
         
@@ -110,11 +100,11 @@ class DirectoryWalker:
                 )
                 
                 if attempt == self.max_retries - 1:
-                    # Final attempt failed - yield error record
-                    yield FileRecord.create_permission_error(
-                        current_dir,
-                        is_directory=True,
-                        error_message=f"Permission denied after {self.max_retries} retries: {e}",
+                    # Final attempt failed - log error but don't store directory record
+                    logger.error(
+                        "directory_scan_failed",
+                        path=str(current_dir),
+                        error="Permission denied - cannot scan directory for files",
                     )
                     return
                 
@@ -132,10 +122,11 @@ class DirectoryWalker:
                 )
                 
                 if attempt == self.max_retries - 1:
-                    yield FileRecord.create_permission_error(
-                        current_dir,
-                        is_directory=True,
-                        error_message=f"OS error after {self.max_retries} retries: {e}",
+                    # Final attempt failed - log error but don't store directory record
+                    logger.error(
+                        "directory_scan_failed",
+                        path=str(current_dir),
+                        error=f"OS error - cannot scan directory for files: {e}",
                     )
                     return
                 
@@ -156,20 +147,15 @@ class DirectoryWalker:
                     yield FileRecord.create_skipped(entry_path, "Symlink skipped to prevent cycles")
                     continue
                 
-                # Handle directories
+                # Handle directories - recurse but don't store directory records
                 if entry.is_dir(follow_symlinks=False):
-                    # First yield the directory record itself
-                    dir_record = await self._process_entry(entry, entry_path, is_dir=True)
-                    if dir_record:
-                        yield dir_record
-                    
-                    # Then recurse into it
+                    # Recurse into directory to find files
                     async for record in self._walk_recursive(entry_path):
                         yield record
                 
                 # Handle files
                 elif entry.is_file(follow_symlinks=False):
-                    record = await self._process_entry(entry, entry_path, is_dir=False)
+                    record = await self._process_file(entry, entry_path)
                     if record:
                         yield record
                 
@@ -183,40 +169,61 @@ class DirectoryWalker:
                     yield FileRecord.create_skipped(entry_path, "Unknown entry type")
                     
             except PermissionError as e:
-                logger.warning(
-                    "entry_permission_denied",
-                    path=str(entry_path),
-                    error=str(e),
-                    likely_cause="File locked or ACL prevents read",
-                    developer_action="Check file permissions and ensure file is not locked",
-                )
-                yield FileRecord.create_permission_error(
-                    entry_path,
-                    is_directory=entry.is_dir(follow_symlinks=False),
-                    error_message=f"Permission denied: {e}",
-                )
+                # Only record permission errors for files, not directories
+                if entry.is_file(follow_symlinks=False):
+                    logger.warning(
+                        "entry_permission_denied",
+                        path=str(entry_path),
+                        error=str(e),
+                        likely_cause="File locked or ACL prevents read",
+                        developer_action="Check file permissions and ensure file is not locked",
+                    )
+                    yield FileRecord.create_permission_error(
+                        entry_path,
+                        is_directory=False,
+                        error_message=f"Permission denied: {e}",
+                    )
+                else:
+                    # Log directory permission errors but don't store them
+                    logger.warning(
+                        "directory_permission_denied",
+                        path=str(entry_path),
+                        error=str(e),
+                        likely_cause="Cannot access directory to scan files",
+                        developer_action="Check directory permissions",
+                    )
                 
             except OSError as e:
-                logger.warning(
-                    "entry_access_error",
-                    path=str(entry_path),
-                    error=str(e),
-                    likely_cause="DFS transient error or corrupted file",
-                    developer_action="Check DFS health and file integrity",
-                )
-                yield FileRecord.create_permission_error(
-                    entry_path,
-                    is_directory=entry.is_dir(follow_symlinks=False),
-                    error_message=f"OS error: {e}",
-                )
+                # Only record OS errors for files, not directories
+                if entry.is_file(follow_symlinks=False):
+                    logger.warning(
+                        "entry_access_error",
+                        path=str(entry_path),
+                        error=str(e),
+                        likely_cause="DFS transient error or corrupted file",
+                        developer_action="Check DFS health and file integrity",
+                    )
+                    yield FileRecord.create_permission_error(
+                        entry_path,
+                        is_directory=False,
+                        error_message=f"OS error: {e}",
+                    )
+                else:
+                    # Log directory errors but don't store them
+                    logger.warning(
+                        "directory_access_error",
+                        path=str(entry_path),
+                        error=str(e),
+                        likely_cause="Cannot access directory",
+                        developer_action="Check directory accessibility",
+                    )
     
-    async def _process_entry(
+    async def _process_file(
         self,
         entry: os.DirEntry,
         entry_path: Path,
-        is_dir: bool,
     ) -> FileRecord | None:
-        """Process a single file or directory entry.
+        """Process a single file entry.
         
         Returns:
             FileRecord or None if error
@@ -247,18 +254,14 @@ class DirectoryWalker:
                     parent_dir=entry_path.parent,
                     status=FileStatus.ERROR,
                     error=f"Stat timeout after {self.timeout_seconds}s",
-                    is_directory=is_dir,
+                    is_directory=False,
                 )
             
-            # Extract ACL (for files only, not directories)
-            acl_result = ACLResult()
-            if not is_dir:
-                acl_result = await extract_acl(entry_path, self.timeout_seconds)
+            # Extract ACL for the file
+            acl_result = await extract_acl(entry_path, self.timeout_seconds)
             
             # Determine status based on ACL extraction
-            if is_dir:
-                status = FileStatus.DISCOVERED
-            elif acl_result.captured:
+            if acl_result.captured:
                 status = FileStatus.DISCOVERED
             else:
                 status = FileStatus.ACL_FAILED
@@ -267,13 +270,13 @@ class DirectoryWalker:
                 file_path=entry_path.resolve(),
                 file_name=entry.name,
                 parent_dir=entry_path.parent,
-                size=stat_info.st_size if not is_dir else None,
+                size=stat_info.st_size,
                 mtime=stat_info.st_mtime,
                 raw_acl=acl_result.raw_acl,
                 acl_captured=acl_result.captured,
                 status=status,
                 error=acl_result.error if not acl_result.captured else None,
-                is_directory=is_dir,
+                is_directory=False,
             )
             
         except Exception as e:
@@ -289,5 +292,5 @@ class DirectoryWalker:
                 parent_dir=entry_path.parent,
                 status=FileStatus.ERROR,
                 error=f"Processing error: {e}",
-                is_directory=is_dir,
+                is_directory=False,
             )
