@@ -132,6 +132,16 @@ class Settings(BaseSettings):
         description="Continue processing on individual file errors",
     )
     
+    # Proxy settings
+    proxy_http: str | None = Field(
+        default=None,
+        description="HTTP proxy URL (e.g., http://10.10.1.10:3128)",
+    )
+    proxy_https: str | None = Field(
+        default=None,
+        description="HTTPS proxy URL (e.g., http://10.10.1.10:1080)",
+    )
+    
     # Logging
     log_level: str = Field(
         default="INFO",
@@ -142,6 +152,16 @@ class Settings(BaseSettings):
         default=False,
         description="Verbose output",
     )
+    
+    @property
+    def proxies(self) -> dict[str, str] | None:
+        """Get proxies dictionary for requests library."""
+        proxies = {}
+        if self.proxy_http:
+            proxies["http"] = self.proxy_http
+        if self.proxy_https:
+            proxies["https"] = self.proxy_https
+        return proxies if proxies else None
     
     @property
     def base_url(self) -> str:

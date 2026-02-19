@@ -76,6 +76,9 @@ class IngestionRunner:
         logger.info(f"Ingestor: {self.config.base_url}")
         logger.info(f"Collection: {self.config.collection_name}")
         logger.info(f"Batch size: {self.config.batch_size}")
+        if self.config.proxies:
+            logger.info(f"Proxy HTTP: {self.config.proxy_http or 'Not set'}")
+            logger.info(f"Proxy HTTPS: {self.config.proxy_https or 'Not set'}")
         
         # Verify database exists
         if not self.config.db_path.exists():
@@ -89,6 +92,7 @@ class IngestionRunner:
                 base_url=self.config.base_url,
                 logger=logger,
                 poll_timeout=self.config.poll_timeout,
+                proxies=self.config.proxies,
             )
             checkpoint_manager = CheckpointManager(self.config.checkpoint_file)
             
@@ -212,6 +216,20 @@ Examples:
         help="Embedding dimension (default: 2048)",
     )
     
+    # Proxy arguments
+    parser.add_argument(
+        "--proxy-http",
+        type=str,
+        default=None,
+        help="HTTP proxy URL (e.g., http://10.10.1.10:3128)",
+    )
+    parser.add_argument(
+        "--proxy-https",
+        type=str,
+        default=None,
+        help="HTTPS proxy URL (e.g., http://10.10.1.10:1080)",
+    )
+    
     # Processing arguments
     parser.add_argument(
         "--batch-size",
@@ -324,6 +342,10 @@ Examples:
         settings.collection_name = args.collection_name
     if args.embedding_dimension:
         settings.embedding_dimension = args.embedding_dimension
+    if args.proxy_http:
+        settings.proxy_http = args.proxy_http
+    if args.proxy_https:
+        settings.proxy_https = args.proxy_https
     if args.batch_size:
         settings.batch_size = args.batch_size
     if args.checkpoint_interval:

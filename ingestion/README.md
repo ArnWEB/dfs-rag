@@ -48,8 +48,23 @@ export INGESTION_COLLECTION_NAME=documents
 export INGESTION_BATCH_SIZE=100
 export INGESTION_LOG_LEVEL=INFO
 
+# Proxy configuration (optional)
+export INGESTION_PROXY_HTTP=http://10.10.1.10:3128
+export INGESTION_PROXY_HTTPS=http://10.10.1.10:1080
+
 # Then run
 uv run python -m ingestion
+```
+
+### Using Proxy via CLI
+
+```bash
+# With proxy settings
+uv run python -m ingestion \
+  --db-path ./manifest.db \
+  --proxy-http http://10.10.1.10:3128 \
+  --proxy-https http://10.10.1.10:1080 \
+  --collection-name docs
 ```
 
 ## Database Schema
@@ -91,6 +106,8 @@ ingestion/
 | `--db-path` | Path to manifest database | `./manifest.db` |
 | `--ingestor-host` | RAG ingestor host | `localhost` |
 | `--ingestor-port` | RAG ingestor port | `8082` |
+| `--proxy-http` | HTTP proxy URL | `None` |
+| `--proxy-https` | HTTPS proxy URL | `None` |
 | `--collection-name` | Target collection | `documents` |
 | `--batch-size` | Files per batch | `100` |
 | `--checkpoint-interval` | Save every N batches | `10` |

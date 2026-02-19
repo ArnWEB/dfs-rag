@@ -23,6 +23,7 @@ class IngestionClient:
         base_url: str,
         logger: logging.Logger | None = None,
         poll_timeout: int = 3600,
+        proxies: dict[str, str] | None = None,
     ):
         """Initialize ingestion client.
         
@@ -30,10 +31,12 @@ class IngestionClient:
             base_url: Base URL for ingestor API (e.g., http://localhost:8082)
             logger: Optional logger instance
             poll_timeout: Timeout for polling operations
+            proxies: Optional proxy configuration dict
         """
         self.base_url = base_url.rstrip("/")
         self.logger = logger or logging.getLogger(__name__)
         self.poll_timeout = poll_timeout
+        self.proxies = proxies
     
     def create_collection(
         self,
@@ -76,7 +79,7 @@ class IngestionClient:
         
         try:
             self.logger.debug(f"Creating collection: {collection_name}")
-            resp = requests.post(url, json=payload, timeout=60)
+            resp = requests.post(url, json=payload, timeout=60, proxies=self.proxies)
             
             if resp.status_code >= 400:
                 try:
@@ -116,7 +119,8 @@ class IngestionClient:
             resp = requests.delete(
                 url,
                 json={"collection_names": [collection_name]},
-                timeout=60
+                timeout=60,
+                proxies=self.proxies
             )
             
             if resp.status_code >= 400:
@@ -185,7 +189,7 @@ class IngestionClient:
             )
             
             self.logger.debug(f"Uploading {len(files)} documents")
-            resp = requests.post(url, files=files_form, timeout=timeout)
+            resp = requests.post(url, files=files_form, timeout=timeout, proxies=self.proxies)
             
             if resp.status_code >= 400:
                 try:
