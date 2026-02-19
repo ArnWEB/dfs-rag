@@ -236,7 +236,9 @@ class IngestionProcessor:
         custom_metadata = []
         
         for file_record in files:
-            metadata = {}
+            metadata = {
+                "filename": file_record.file_name
+            }
             
             # Include ACL data if available
             if file_record.raw_acl:
