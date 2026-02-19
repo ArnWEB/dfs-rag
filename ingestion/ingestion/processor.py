@@ -224,7 +224,7 @@ class IngestionProcessor:
         )
     
     def _build_payload(self, files: list[FileRecord]) -> dict:
-        """Build upload payload with ACL metadata.
+        """Build upload payload.
         
         Args:
             files: List of file records
@@ -232,30 +232,25 @@ class IngestionProcessor:
         Returns:
             Payload dictionary
         """
-        # Build custom metadata from ACL entries
+        # Build custom metadata with ACL data from raw_acl column
         custom_metadata = []
         
         for file_record in files:
             metadata = {}
             
-            # Parse ACL if available
+            # Include ACL data if available
             if file_record.raw_acl:
                 try:
-                    # Try to parse as JSON (structured ACL)
+                    # Try to parse as JSON
                     acl_data = json.loads(file_record.raw_acl)
-                    if isinstance(acl_data, dict) and "allowed_sids" in acl_data:
-                        metadata["allowed_sids"] = acl_data["allowed_sids"]
+                    if isinstance(acl_data, dict):
+                        metadata.update(acl_data)
                     else:
-                        # Use raw ACL as-is
-                        metadata["raw_acl"] = file_record.raw_acl
-                except json.JSONDecodeError:
-                    # Raw ACL is not JSON, store as string
-                    metadata["raw_acl"] = file_record.raw_acl
+                        metadata["acl"] = str(acl_data)
+                except (json.JSONDecodeError, TypeError):
+                    metadata["acl"] = file_record.raw_acl
             
-            custom_metadata.append({
-                "filename": file_record.file_name,
-                "metadata": metadata
-            })
+            custom_metadata.append(metadata)
         
         return {
             "collection_name": self.settings.collection_name,
