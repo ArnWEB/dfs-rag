@@ -5,6 +5,7 @@ Production-ready DFS discovery tool that recursively walks file shares, extracts
 ## Features
 
 - **Recursive Discovery**: Walks entire DFS tree using `os.scandir` for performance
+- **File Extension Filtering**: Only processes supported file types (see list below)
 - **Permission Error Handling**: Records permission errors in DB with proper status
 - **ACL Extraction**: Tries `getfacl` first, falls back to `stat` info
 - **Timeout Handling**: 5-minute timeout per file operation
@@ -12,6 +13,33 @@ Production-ready DFS discovery tool that recursively walks file shares, extracts
 - **Resumable**: Safe to restart - uses `INSERT OR IGNORE`
 - **Structured Logging**: JSON logs + human-readable console output
 - **Production Ready**: Full error handling, retry logic, progress reporting
+
+## Supported File Extensions
+
+Only files with these extensions are processed and stored in the manifest:
+
+| Extension | Notes |
+|-----------|-------|
+| `.avi` | Early access |
+| `.bmp` | |
+| `.docx` | |
+| `.html` | Converted to markdown format |
+| `.jpeg` / `.jpg` | |
+| `.json` | Treated as text |
+| `.md` | Treated as text |
+| `.mkv` | Early access |
+| `.mov` | Early access |
+| `.mp3` | |
+| `.mp4` | Early access |
+| `.pdf` | |
+| `.png` | |
+| `.pptx` | |
+| `.sh` | Treated as text |
+| `.tiff` / `.tif` | |
+| `.txt` | |
+| `.wav` | |
+
+**Unsupported files are automatically skipped** - no ACL extraction or database storage.
 
 ## Quick Start
 

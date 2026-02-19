@@ -13,6 +13,30 @@ from .acl_extractor import extract_acl
 
 logger = structlog.get_logger()
 
+# Supported file extensions for downstream processing
+SUPPORTED_EXTENSIONS = {
+    '.avi',   # early access
+    '.bmp',
+    '.docx',
+    '.html',  # converted to markdown format
+    '.jpeg',
+    '.jpg',   # alias for jpeg
+    '.json',  # treated as text
+    '.md',    # treated as text
+    '.mkv',   # early access
+    '.mov',   # early access
+    '.mp3',
+    '.mp4',   # early access
+    '.pdf',
+    '.png',
+    '.pptx',
+    '.sh',    # treated as text
+    '.tiff',
+    '.tif',   # alias for tiff
+    '.txt',
+    '.wav',
+}
+
 
 class DirectoryWalker:
     """Walks directories asynchronously with proper error handling."""
@@ -30,6 +54,18 @@ class DirectoryWalker:
         """
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
+    
+    def _is_supported_extension(self, filename: str) -> bool:
+        """Check if file has a supported extension.
+        
+        Args:
+            filename: Name of the file
+            
+        Returns:
+            True if extension is supported
+        """
+        ext = Path(filename).suffix.lower()
+        return ext in SUPPORTED_EXTENSIONS
     
     async def walk(
         self,
@@ -155,6 +191,16 @@ class DirectoryWalker:
                 
                 # Handle files
                 elif entry.is_file(follow_symlinks=False):
+                    # Check if file has supported extension
+                    if not self._is_supported_extension(entry.name):
+                        logger.debug(
+                            "file_extension_skipped",
+                            path=str(entry_path),
+                            filename=entry.name,
+                            reason="Extension not in supported list",
+                        )
+                        continue
+                    
                     record = await self._process_file(entry, entry_path)
                     if record:
                         yield record
