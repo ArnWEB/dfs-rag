@@ -30,6 +30,10 @@ class Manifest(Base):
     raw_acl = Column(Text, nullable=True)
     acl_captured = Column(Boolean, default=False, index=True)
     status = Column(String, nullable=False, default="pending", index=True)
+    ingestion_status = Column(String, nullable=False, default="pending", index=True)
+    ingestion_attempts = Column(Integer, default=0)
+    ingestion_error = Column(Text, nullable=True)
+    ingested_at = Column(DateTime, nullable=True)
     error = Column(Text, nullable=True)
     retry_count = Column(Integer, default=0)
     is_directory = Column(Boolean, default=False, index=True)
@@ -39,6 +43,7 @@ class Manifest(Base):
     
     __table_args__ = (
         Index("idx_manifest_status_path", "status", "file_path"),
+        Index("idx_manifest_ingestion_status", "ingestion_status"),
         Index("idx_manifest_parent", "parent_dir", "file_name"),
         Index("idx_manifest_error", "status", "error"),
     )
@@ -56,6 +61,10 @@ CREATE TABLE IF NOT EXISTS manifest (
     raw_acl TEXT,
     acl_captured BOOLEAN DEFAULT FALSE,
     status TEXT DEFAULT 'pending' NOT NULL,
+    ingestion_status TEXT DEFAULT 'pending' NOT NULL,
+    ingestion_attempts INTEGER DEFAULT 0,
+    ingestion_error TEXT,
+    ingested_at TIMESTAMP,
     error TEXT,
     retry_count INTEGER DEFAULT 0,
     is_directory BOOLEAN DEFAULT FALSE,
@@ -70,6 +79,7 @@ CREATE_INDEXES_SQL = [
     "CREATE INDEX IF NOT EXISTS idx_manifest_name ON manifest(file_name)",
     "CREATE INDEX IF NOT EXISTS idx_manifest_parent ON manifest(parent_dir)",
     "CREATE INDEX IF NOT EXISTS idx_manifest_status ON manifest(status)",
+    "CREATE INDEX IF NOT EXISTS idx_manifest_ingestion_status ON manifest(ingestion_status)",
     "CREATE INDEX IF NOT EXISTS idx_manifest_acl ON manifest(acl_captured)",
     "CREATE INDEX IF NOT EXISTS idx_manifest_dir ON manifest(is_directory)",
     "CREATE INDEX IF NOT EXISTS idx_manifest_status_path ON manifest(status, file_path)",

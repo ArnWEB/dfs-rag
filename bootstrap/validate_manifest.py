@@ -101,6 +101,19 @@ def validate_manifest(db_path: Path) -> None:
     """)
     format_rows(rows, ["ACL Status", "Count"])
     
+    # 4b. Ingestion Status (New!)
+    print_section("4b. INGESTION STATUS (Downstream Processing)")
+    rows = query_db(db_path, """
+        SELECT 
+            ingestion_status,
+            COUNT(*) as count,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM manifest), 2) as percentage
+        FROM manifest 
+        GROUP BY ingestion_status 
+        ORDER BY count DESC
+    """)
+    format_rows(rows, ["Ingestion Status", "Count", "Percentage %"])
+    
     # 5. Permission Errors
     print_section("5. PERMISSION ERRORS")
     rows = query_db(db_path, """

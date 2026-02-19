@@ -18,6 +18,14 @@ class FileStatus(str, Enum):
     SKIPPED = "skipped"
 
 
+class IngestionStatus(str, Enum):
+    """Ingestion status for downstream processing."""
+    PENDING = "pending"
+    INGESTING = "ingesting"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
 class ACLResult(BaseModel):
     """Result of ACL extraction attempt."""
     raw_acl: str | None = None
@@ -37,6 +45,10 @@ class FileRecord(BaseModel):
     raw_acl: str | None = Field(default=None, description="Raw ACL string or JSON")
     acl_captured: bool = Field(default=False, description="Whether ACL was successfully captured")
     status: FileStatus = Field(default=FileStatus.PENDING, description="Discovery status")
+    ingestion_status: IngestionStatus = Field(default=IngestionStatus.PENDING, description="Ingestion status for downstream processing")
+    ingestion_attempts: int = Field(default=0, ge=0, description="Number of ingestion attempts")
+    ingestion_error: str | None = Field(default=None, description="Ingestion error message if failed")
+    ingested_at: datetime | None = Field(default=None, description="Timestamp when ingestion completed")
     error: str | None = Field(default=None, description="Error message if any")
     retry_count: int = Field(default=0, ge=0, description="Number of retry attempts")
     is_directory: bool = Field(default=False, description="Whether this is a directory")
@@ -65,6 +77,10 @@ class FileRecord(BaseModel):
             "raw_acl": self.raw_acl,
             "acl_captured": self.acl_captured,
             "status": self.status.value,
+            "ingestion_status": self.ingestion_status.value,
+            "ingestion_attempts": self.ingestion_attempts,
+            "ingestion_error": self.ingestion_error,
+            "ingested_at": self.ingested_at.isoformat() if self.ingested_at else None,
             "error": self.error,
             "retry_count": self.retry_count,
             "is_directory": self.is_directory,
