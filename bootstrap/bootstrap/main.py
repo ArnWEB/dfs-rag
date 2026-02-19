@@ -10,7 +10,7 @@ import structlog
 
 from bootstrap.config import Settings, settings
 from bootstrap.database import create_database_engine, ManifestRepository
-from bootstrap.discovery import BatchProcessor, DirectoryWalker
+from bootstrap.discovery import BatchProcessor, DirectoryWalker, create_acl_extractor
 from bootstrap.logging_config import configure_logging
 from bootstrap.models import BootstrapStats
 
@@ -91,9 +91,13 @@ class BootstrapRunner:
                 )
             
             # Create components
+            acl_extractor = create_acl_extractor(self.config.acl_extractor)
+            logger.info("acl_extractor_initialized", extractor_type=acl_extractor.name)
+            
             walker = DirectoryWalker(
                 timeout_seconds=self.config.file_timeout_seconds,
                 max_retries=self.config.max_retries,
+                acl_extractor=acl_extractor,
             )
             
             processor = BatchProcessor(
@@ -178,6 +182,12 @@ def main():
         default=None,
         help="Report progress every N files",
     )
+    parser.add_argument(
+        "--acl-extractor",
+        choices=["getfacl", "stat", "noop"],
+        default=None,
+        help="ACL extractor type: getfacl (default - getfacl+stat), stat (stat only), noop (no ACL extraction)",
+    )
     
     args = parser.parse_args()
     
@@ -198,6 +208,8 @@ def main():
         settings.log_file = args.log_file
     if args.progress_interval:
         settings.progress_interval = args.progress_interval
+    if args.acl_extractor:
+        settings.acl_extractor = args.acl_extractor
     
     # Run
     try:

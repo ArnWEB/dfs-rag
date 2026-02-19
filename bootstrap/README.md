@@ -77,9 +77,69 @@ export BOOTSTRAP_WORKERS=8
 export BOOTSTRAP_BATCH_SIZE=500
 export BOOTSTRAP_TIMEOUT=5
 export BOOTSTRAP_PROGRESS_INTERVAL=10000
+export BOOTSTRAP_ACL_EXTRACTOR=getfacl  # getfacl, stat, or noop
 
 # Then run without arguments
 uv run python -m bootstrap
+```
+
+## Pluggable ACL Extractors
+
+The ACL extraction is extensible via a plugin architecture. Three built-in implementations are provided:
+
+| Extractor | Description | Use Case |
+|-----------|-------------|----------|
+| `getfacl` | **Default** - Tries getfacl first, falls back to stat | Best for Linux/CIFS mounts with full ACL support |
+| `stat` | Stat only, no getfacl | Faster when you only need basic permissions |
+| `noop` | No ACL extraction | Fastest when you don't need ACL info at all |
+
+### Usage Examples
+
+```bash
+# Default (getfacl + stat fallback)
+uv run python -m bootstrap /mnt/dfs_share
+
+# Stat only (faster, no getfacl dependency)
+uv run python -m bootstrap /mnt/dfs_share --acl-extractor stat
+
+# No ACL extraction (fastest)
+uv run python -m bootstrap /mnt/dfs_share --acl-extractor noop
+
+# Via environment variable
+export BOOTSTRAP_ACL_EXTRACTOR=stat
+uv run python -m bootstrap /mnt/dfs_share
+```
+
+### Creating Custom ACL Extractors
+
+You can implement custom ACL extractors by subclassing `ACLExtractor`:
+
+```python
+from bootstrap.discovery.acl_extractor import ACLExtractor, ACLResult
+from pathlib import Path
+
+class MyCustomACLExtractor(ACLExtractor):
+    @property
+    def name(self) -> str:
+        return "my-custom"
+    
+    async def extract(self, file_path: Path, timeout_seconds: float = 300.0) -> ACLResult:
+        # Your custom ACL extraction logic here
+        return ACLResult(
+            raw_acl="custom_acl_data",
+            captured=True,
+            method="my-custom",
+        )
+```
+
+Then use it in the walker:
+
+```python
+from bootstrap.discovery import DirectoryWalker
+
+walker = DirectoryWalker(
+    acl_extractor=MyCustomACLExtractor()
+)
 ```
 
 ## Database Schema

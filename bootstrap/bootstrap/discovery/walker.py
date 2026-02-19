@@ -9,7 +9,7 @@ import structlog
 
 from bootstrap.models.file_record import ACLResult, FileRecord, FileStatus
 
-from .acl_extractor import extract_acl
+from .acl_extractor import ACLExtractor, GetfaclACLExtractor
 
 logger = structlog.get_logger()
 
@@ -45,15 +45,18 @@ class DirectoryWalker:
         self,
         timeout_seconds: float = 300.0,
         max_retries: int = 3,
+        acl_extractor: ACLExtractor | None = None,
     ):
         """Initialize walker.
         
         Args:
             timeout_seconds: Timeout per file operation
             max_retries: Max retries for transient errors
+            acl_extractor: ACL extractor implementation (default: GetfaclACLExtractor)
         """
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
+        self.acl_extractor = acl_extractor or GetfaclACLExtractor()
     
     def _is_supported_extension(self, filename: str) -> bool:
         """Check if file has a supported extension.
@@ -303,8 +306,8 @@ class DirectoryWalker:
                     is_directory=False,
                 )
             
-            # Extract ACL for the file
-            acl_result = await extract_acl(entry_path, self.timeout_seconds)
+            # Extract ACL for the file using the configured extractor
+            acl_result = await self.acl_extractor.extract(entry_path, self.timeout_seconds)
             
             # Determine status based on ACL extraction
             if acl_result.captured:

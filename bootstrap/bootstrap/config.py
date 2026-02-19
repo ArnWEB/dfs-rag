@@ -92,6 +92,13 @@ class Settings(BaseSettings):
         description="SQLite cache size in MB",
     )
     
+    # ACL Extraction
+    acl_extractor: str = Field(
+        default="getfacl",
+        pattern="^(getfacl|stat|noop)$",
+        description="ACL extractor type: getfacl (default), stat, or noop",
+    )
+    
     @property
     def file_timeout_seconds(self) -> float:
         """Get file timeout in seconds."""
