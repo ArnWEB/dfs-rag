@@ -41,7 +41,7 @@ class IngestionRepository:
         batch_size: int,
         offset: int = 0,
     ) -> list[FileRecord]:
-        """Get batch of pending files from database.
+        """Get batch of pending/failed files from database.
         
         Args:
             batch_size: Number of records to fetch
@@ -55,13 +55,15 @@ class IngestionRepository:
         
         try:
             # Query files with status='discovered' that haven't been ingested
-            # Also check ingestion_status column if it exists
+            # Include pending and failed for retry
             cursor.execute("""
                 SELECT file_path, file_name, parent_dir, size, mtime, 
                        raw_acl, acl_captured, status
                 FROM manifest
                 WHERE status = 'discovered'
-                  AND (ingestion_status IS NULL OR ingestion_status = 'pending')
+                  AND (ingestion_status IS NULL 
+                       OR ingestion_status = 'pending' 
+                       OR ingestion_status = 'failed')
                 ORDER BY file_path
                 LIMIT ? OFFSET ?
             """, (batch_size, offset))
