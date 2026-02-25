@@ -1,4 +1,5 @@
 import axios from "axios"
+import { keycloak } from "./keycloak"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000"
 
@@ -9,6 +10,29 @@ export const api = axios.create({
     "Content-Type": "application/json",
   },
 })
+
+api.interceptors.request.use(
+  async (config) => {
+    if (keycloak.authenticated) {
+      const token = keycloak.token
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      keycloak.logout({ redirectUri: window.location.origin })
+    }
+    return Promise.reject(error)
+  }
+)
 
 export interface BootstrapStats {
   total: number

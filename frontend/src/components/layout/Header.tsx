@@ -36,9 +36,9 @@ export function Header() {
   }
 
   return (
-    <header className="flex h-14 items-center justify-between border-b bg-card px-6">
+    <header className="flex h-14 items-center justify-between border-b bg-white px-6 shadow-nav">
       <div className="flex items-center space-x-4">
-        <h1 className="text-lg font-semibold">DFS RAG Manager</h1>
+        <h1 className="text-lg font-semibold text-bank-blue-dark">EXIM RAG Ingest Manager</h1>
         
         <div className="flex items-center space-x-2">
           <Badge variant={wsConnected ? "success" : "destructive"} className="gap-1">

@@ -175,7 +175,7 @@ export default function DashboardPage() {
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
             <p className="text-muted-foreground">
-              Overview of your DFS RAG system
+              Overview of your EXIM RAG system
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>

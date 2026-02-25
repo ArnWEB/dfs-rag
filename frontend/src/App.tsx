@@ -1,22 +1,23 @@
 import { useEffect } from "react"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Layout } from "@/components/layout/Layout"
+import { ProtectedRoute } from "@/components/ProtectedRoute"
 import DashboardPage from "@/pages/Dashboard"
 import BootstrapPage from "@/pages/Bootstrap"
 import IngestionPage from "@/pages/Ingestion"
 import FilesPage from "@/pages/Files"
 import SettingsPage from "@/pages/Settings"
+import LoginPage from "@/pages/Login"
+import { AuthProvider } from "@/lib/auth"
 import { wsClient } from "@/lib/websocket"
 import { useAppStore } from "@/stores/appStore"
 
-function App() {
+function AppContent() {
   const {
     setWsConnected,
     setBootstrapRunning,
     setIngestionRunning,
     addActivityEvent,
-    setBootstrapStats,
-    setIngestionStats,
   } = useAppStore()
 
   useEffect(() => {
@@ -126,22 +127,40 @@ function App() {
     setBootstrapRunning,
     setIngestionRunning,
     addActivityEvent,
-    setBootstrapStats,
-    setIngestionStats,
   ])
 
   return (
-    <BrowserRouter>
-      <Layout>
+    <Layout>
+      <Routes>
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/bootstrap" element={<BootstrapPage />} />
+        <Route path="/ingestion" element={<IngestionPage />} />
+        <Route path="/files" element={<FilesPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </Layout>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
         <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/bootstrap" element={<BootstrapPage />} />
-          <Route path="/ingestion" element={<IngestionPage />} />
-          <Route path="/files" element={<FilesPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <AppContent />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-      </Layout>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 

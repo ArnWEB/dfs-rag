@@ -1,0 +1,34 @@
+{
+  "id": "exim-rag",
+  "realm": "exim-rag",
+  "enabled": true,
+  "displayName": "EXIM RAG",
+  "accessTokenLifespan": 300,
+  "components": {
+    "org.keycloak.userfed.ldap.LDAPUserStorageProvider": {
+      "ldap-provider": [
+        {
+          "name": "ldap",
+          "providerId": "ldap",
+          "config": {
+            "vendor": ["other"],
+            "connectionUrl": ["ldap://ldap.forumsys.com:389"],
+            "bindDn": ["cn=read-only-admin,dc=example,dc=com"],
+            "bindCredential": ["password"],
+            "usersDn": ["dc=example,dc=com"],
+            "searchScope": ["1"],
+            "usernameLDAPAttribute": ["uid"],
+            "rdnLDAPAttribute": ["uid"],
+            "userObjectClasses": ["inetOrgPerson,organizationalPerson"],
+            "userAccountControlsAfterPasswordUpdate": ["false"],
+            "syncRegistrations": ["false"],
+            "trustEmail": ["false"],
+            "useTruststoreSpi": ["never"],
+            "connectionPooling": ["true"],
+            "pagination": ["true"]
+          }
+        }
+      ]
+    }
+  }
+}
