@@ -12,7 +12,7 @@ export const keycloakConfigParams = {
   onLoad: "check-sso" as const,
   silentCheckSsoRedirectUri:
     window.location.origin + "/silent-check-sso.html",
-  pkceMethod: "S256",
+  pkceMethod: "S256" as const,
 }
 
 export default keycloak

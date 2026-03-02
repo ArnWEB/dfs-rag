@@ -93,6 +93,7 @@ class IngestionRepository:
         file_path: str,
         status: str,
         error: str | None = None,
+        remarks: str | None = None,
     ) -> None:
         """Update ingestion status for a file.
         
@@ -100,6 +101,7 @@ class IngestionRepository:
             file_path: Path to the file
             status: New status (ingesting/completed/failed)
             error: Optional error message
+            remarks: Optional detailed remarks/reasons
         """
         conn = self._get_connection()
         cursor = conn.cursor()
@@ -110,9 +112,10 @@ class IngestionRepository:
                 SET ingestion_status = ?,
                     ingestion_attempts = COALESCE(ingestion_attempts, 0) + 1,
                     ingestion_error = ?,
+                    remarks = COALESCE(?, remarks),
                     ingested_at = CASE WHEN ? = 'completed' THEN CURRENT_TIMESTAMP ELSE ingested_at END
                 WHERE file_path = ?
-            """, (status, error, status, file_path))
+            """, (status, error, remarks, status, file_path))
             
             conn.commit()
             

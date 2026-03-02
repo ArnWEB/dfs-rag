@@ -1,14 +1,13 @@
-import { Activity, Wifi, WifiOff, RefreshCw } from "lucide-react"
+import { Activity, RefreshCw } from "lucide-react"
 import { useAppStore } from "../../stores/appStore"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import { bootstrapApi, ingestionApi } from "../../lib/api"
 
 export function Header() {
-  const { 
-    bootstrapRunning, 
-    ingestionRunning, 
-    wsConnected,
+  const {
+    bootstrapRunning,
+    ingestionRunning,
     settings,
     setBootstrapStats,
     setIngestionStats,
@@ -39,22 +38,8 @@ export function Header() {
     <header className="flex h-14 items-center justify-between border-b bg-white px-6 shadow-nav">
       <div className="flex items-center space-x-4">
         <h1 className="text-lg font-semibold text-bank-blue-dark">EXIM RAG Ingest Manager</h1>
-        
-        <div className="flex items-center space-x-2">
-          <Badge variant={wsConnected ? "success" : "destructive"} className="gap-1">
-            {wsConnected ? (
-              <>
-                <Wifi className="h-3 w-3" />
-                Connected
-              </>
-            ) : (
-              <>
-                <WifiOff className="h-3 w-3" />
-                Disconnected
-              </>
-            )}
-          </Badge>
 
+        <div className="flex items-center space-x-2">
           {bootstrapRunning && (
             <Badge variant="warning" className="gap-1">
               <RefreshCw className="h-3 w-3 animate-spin" />

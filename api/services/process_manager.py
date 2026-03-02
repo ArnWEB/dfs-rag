@@ -24,6 +24,7 @@ class ProcessStatus(BaseModel):
     job_id: str | None = None
     process_id: int | None = None
     start_time: float | None = None
+    session_id: str | None = None
 
 
 class ProcessManager:
@@ -53,6 +54,7 @@ class ProcessManager:
         timeout: int = 5,
         log_level: str = "INFO",
         acl_extractor: str = "getfacl",
+        session_id: str | None = None,
     ) -> str:
         async with self._lock:
             if self._bootstrap_status.running:
@@ -89,6 +91,7 @@ class ProcessManager:
                 job_id=job_id,
                 process_id=self._bootstrap_process.pid,
                 start_time=asyncio.get_event_loop().time(),
+                session_id=session_id,
             )
             
             self._bootstrap_config = {
@@ -99,7 +102,13 @@ class ProcessManager:
                 "timeout": timeout,
                 "log_level": log_level,
                 "acl_extractor": acl_extractor,
+                "session_id": session_id,
             }
+            
+            # If session exists, update status
+            if session_id:
+                from api.services.sessions_db import sessions_db
+                sessions_db.update_session(session_id, {"status": "bootstrapping"})
             
             return job_id
 
@@ -134,6 +143,7 @@ class ProcessManager:
         create_collection: bool = True,
         resume: bool = False,
         log_level: str = "INFO",
+        session_id: str | None = None,
         **kwargs,
     ) -> str:
         async with self._lock:
@@ -177,6 +187,7 @@ class ProcessManager:
                 job_id=job_id,
                 process_id=self._ingestion_process.pid,
                 start_time=asyncio.get_event_loop().time(),
+                session_id=session_id,
             )
             
             self._ingestion_config = {
@@ -189,7 +200,13 @@ class ProcessManager:
                 "create_collection": create_collection,
                 "resume": resume,
                 "log_level": log_level,
+                "session_id": session_id,
             }
+            
+            # If session exists, update status
+            if session_id:
+                from api.services.sessions_db import sessions_db
+                sessions_db.update_session(session_id, {"status": "ingesting"})
             
             return job_id
 

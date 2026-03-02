@@ -69,7 +69,7 @@ class DatabaseService:
         conn = self._get_connection()
         cursor = conn.cursor()
         try:
-            query = "SELECT id, file_path, file_name, parent_dir, size, mtime, status, ingestion_status, ingestion_error, ingested_at, error, is_directory, first_seen, last_seen FROM manifest WHERE 1=1"
+            query = "SELECT id, file_path, file_name, parent_dir, size, mtime, status, ingestion_status, ingestion_error, ingested_at, error, remarks, is_directory, first_seen, last_seen FROM manifest WHERE 1=1"
             params = []
             if search:
                 query += " AND (file_name LIKE ? OR file_path LIKE ?)"
@@ -85,7 +85,7 @@ class DatabaseService:
             params.extend([limit, offset])
             cursor.execute(query, params)
             rows = cursor.fetchall()
-            return [{"id": r["id"], "file_path": r["file_path"], "file_name": r["file_name"], "parent_dir": r["parent_dir"], "size": r["size"], "mtime": r["mtime"], "status": r["status"], "ingestion_status": r["ingestion_status"], "ingestion_error": r["ingestion_error"], "ingested_at": r["ingested_at"], "error": r["error"], "is_directory": bool(r["is_directory"]), "first_seen": r["first_seen"], "last_seen": r["last_seen"]} for r in rows]
+            return [{"id": r["id"], "file_path": r["file_path"], "file_name": r["file_name"], "parent_dir": r["parent_dir"], "size": r["size"], "mtime": r["mtime"], "status": r["status"], "ingestion_status": r["ingestion_status"], "ingestion_error": r["ingestion_error"], "ingested_at": r["ingested_at"], "error": r["error"], "remarks": r["remarks"], "is_directory": bool(r["is_directory"]), "first_seen": r["first_seen"], "last_seen": r["last_seen"]} for r in rows]
         except sqlite3.Error as e:
             return [{"error": str(e)}]
         finally:

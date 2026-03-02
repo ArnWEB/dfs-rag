@@ -119,7 +119,7 @@ export default function IngestionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Ingestion</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Ingest</h2>
         <p className="text-muted-foreground">
           Upload documents to NVIDIA RAG
         </p>
@@ -271,7 +271,7 @@ export default function IngestionPage() {
                   ) : (
                     <Play className="mr-2 h-4 w-4" />
                   )}
-                  Start Ingestion
+                  Start Ingest
                 </Button>
               ) : (
                 <Button variant="destructive" onClick={handleStop} disabled={loading}>
@@ -280,7 +280,7 @@ export default function IngestionPage() {
                   ) : (
                     <Square className="mr-2 h-4 w-4" />
                   )}
-                  Stop Ingestion
+                  Stop Ingest
                 </Button>
               )}
             </div>

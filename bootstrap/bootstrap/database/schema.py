@@ -36,6 +36,7 @@ class Manifest(Base):
     ingested_at = Column(DateTime, nullable=True)
     error = Column(Text, nullable=True)
     retry_count = Column(Integer, default=0)
+    remarks = Column(Text, nullable=True)
     is_directory = Column(Boolean, default=False, index=True)
     first_seen = Column(DateTime, server_default=func.now())
     last_seen = Column(DateTime, server_default=func.now(), onupdate=func.now())
@@ -67,6 +68,7 @@ CREATE TABLE IF NOT EXISTS manifest (
     ingested_at TIMESTAMP,
     error TEXT,
     retry_count INTEGER DEFAULT 0,
+    remarks TEXT,
     is_directory BOOLEAN DEFAULT FALSE,
     first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -8,131 +8,77 @@ import IngestionPage from "@/pages/Ingestion"
 import FilesPage from "@/pages/Files"
 import SettingsPage from "@/pages/Settings"
 import LoginPage from "@/pages/Login"
+import SessionsPage from "./pages/Sessions"
+import SessionDashboardPage from "./pages/SessionDashboard"
 import { AuthProvider } from "@/lib/auth"
-import { wsClient } from "@/lib/websocket"
 import { useAppStore } from "@/stores/appStore"
+import { bootstrapApi, ingestionApi } from "@/lib/api"
 
 function AppContent() {
   const {
-    setWsConnected,
     setBootstrapRunning,
     setIngestionRunning,
     addActivityEvent,
   } = useAppStore()
 
   useEffect(() => {
-    wsClient.connect()
+    let mounted = true
+    let prevBsRunning = false
+    let prevInRunning = false
 
-    const unsubState = wsClient.onStateChange((state) => {
-      setWsConnected(state === "connected")
-    })
+    const checkStatus = async () => {
+      if (!mounted) return
+      try {
+        const [bsRes, inRes] = await Promise.all([
+          bootstrapApi.getStatus(),
+          ingestionApi.getStatus()
+        ])
+        if (!mounted) return
 
-    const unsubscribers: (() => void)[] = []
+        const isBsRunning = bsRes.data.running
+        const isInRunning = inRes.data.running
 
-    unsubscribers.push(
-      wsClient.on("bootstrap:started", (data) => {
-        const payload = data as { job_id: string; config: Record<string, unknown> }
-        setBootstrapRunning(true)
-        addActivityEvent({
-          type: "bootstrap:started",
-          message: `Bootstrap started: ${payload.config?.dfs_path}`,
-        })
-      })
-    )
+        setBootstrapRunning(isBsRunning)
+        setIngestionRunning(isInRunning)
 
-    unsubscribers.push(
-      wsClient.on("bootstrap:completed", (data) => {
-        const payload = data as { job_id: string; message: string }
-        setBootstrapRunning(false)
-        addActivityEvent({
-          type: "bootstrap:completed",
-          message: payload.message || "Bootstrap completed",
-        })
-      })
-    )
+        if (isBsRunning && !prevBsRunning) {
+          addActivityEvent({ type: "bootstrap:started", message: "Bootstrap started" })
+        } else if (!isBsRunning && prevBsRunning) {
+          addActivityEvent({ type: "bootstrap:completed", message: "Bootstrap completed or stopped" })
+        }
 
-    unsubscribers.push(
-      wsClient.on("bootstrap:stopped", (data) => {
-        const payload = data as { message: string }
-        setBootstrapRunning(false)
-        addActivityEvent({
-          type: "bootstrap:stopped",
-          message: payload.message || "Bootstrap stopped",
-        })
-      })
-    )
+        if (isInRunning && !prevInRunning) {
+          addActivityEvent({ type: "ingestion:started", message: "Ingestion started" })
+        } else if (!isInRunning && prevInRunning) {
+          addActivityEvent({ type: "ingestion:completed", message: "Ingestion completed or stopped" })
+        }
 
-    unsubscribers.push(
-      wsClient.on("bootstrap:error", (data) => {
-        const payload = data as { error: string }
-        setBootstrapRunning(false)
-        addActivityEvent({
-          type: "bootstrap:error",
-          message: `Bootstrap error: ${payload.error}`,
-        })
-      })
-    )
+        prevBsRunning = isBsRunning
+        prevInRunning = isInRunning
 
-    unsubscribers.push(
-      wsClient.on("ingestion:started", (data) => {
-        const payload = data as { job_id: string; config: Record<string, unknown> }
-        setIngestionRunning(true)
-        addActivityEvent({
-          type: "ingestion:started",
-          message: `Ingestion started: ${payload.config?.collection_name}`,
-        })
-      })
-    )
+      } catch (e) {
+        console.error("Failed status poll", e)
+      }
+    }
 
-    unsubscribers.push(
-      wsClient.on("ingestion:completed", (data) => {
-        const payload = data as { job_id: string; message: string }
-        setIngestionRunning(false)
-        addActivityEvent({
-          type: "ingestion:completed",
-          message: payload.message || "Ingestion completed",
-        })
-      })
-    )
+    // Initial check
+    checkStatus()
 
-    unsubscribers.push(
-      wsClient.on("ingestion:stopped", (data) => {
-        const payload = data as { message: string }
-        setIngestionRunning(false)
-        addActivityEvent({
-          type: "ingestion:stopped",
-          message: payload.message || "Ingestion stopped",
-        })
-      })
-    )
-
-    unsubscribers.push(
-      wsClient.on("ingestion:error", (data) => {
-        const payload = data as { error: string }
-        setIngestionRunning(false)
-        addActivityEvent({
-          type: "ingestion:error",
-          message: `Ingestion error: ${payload.error}`,
-        })
-      })
-    )
+    // 10-second polling
+    const interval = setInterval(checkStatus, 10000)
 
     return () => {
-      unsubState()
-      unsubscribers.forEach((unsub) => unsub())
-      wsClient.disconnect()
+      mounted = false
+      clearInterval(interval)
     }
-  }, [
-    setWsConnected,
-    setBootstrapRunning,
-    setIngestionRunning,
-    addActivityEvent,
-  ])
+  }, [setBootstrapRunning, setIngestionRunning, addActivityEvent])
 
   return (
     <Layout>
       <Routes>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/sessions" element={<SessionsPage />} />
+        <Route path="/sessions/:id" element={<SessionDashboardPage />} />
         <Route path="/bootstrap" element={<BootstrapPage />} />
         <Route path="/ingestion" element={<IngestionPage />} />
         <Route path="/files" element={<FilesPage />} />

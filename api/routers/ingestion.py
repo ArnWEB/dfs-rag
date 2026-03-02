@@ -5,7 +5,6 @@ from pathlib import Path
 
 from api.services.process_manager import process_manager
 from api.services.database import DatabaseService
-from api.websocket.manager import manager
 
 router = APIRouter(prefix="/api/ingestion", tags=["ingestion"])
 
@@ -19,6 +18,7 @@ class IngestionStartRequest(BaseModel):
     create_collection: bool = True
     resume: bool = False
     log_level: str = "INFO"
+    session_id: str | None = None
 
 
 class GetStatsRequest(BaseModel):
@@ -28,9 +28,8 @@ class GetStatsRequest(BaseModel):
 @router.post("/start")
 async def start_ingestion(request: IngestionStartRequest):
     try:
-        db_path = Path(request.db_path) if request.db_path else None
-        job_id = await process_manager.start_ingestion(db_path=db_path, collection_name=request.collection_name, ingestor_host=request.ingestor_host, ingestor_port=request.ingestor_port, batch_size=request.batch_size, checkpoint_interval=request.checkpoint_interval, create_collection=request.create_collection, resume=request.resume, log_level=request.log_level)
-        await manager.send_event("ingestion:started", {"job_id": job_id, "config": process_manager.get_ingestion_config()})
+        db_path = Path(request.db_path).resolve() if request.db_path else None
+        job_id = await process_manager.start_ingestion(db_path=db_path, collection_name=request.collection_name, ingestor_host=request.ingestor_host, ingestor_port=request.ingestor_port, batch_size=request.batch_size, checkpoint_interval=request.checkpoint_interval, create_collection=request.create_collection, resume=request.resume, log_level=request.log_level, session_id=request.session_id)
         return {"job_id": job_id, "status": "started"}
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -41,8 +40,6 @@ async def start_ingestion(request: IngestionStartRequest):
 async def stop_ingestion():
     try:
         stopped = await process_manager.stop_ingestion()
-        if stopped:
-            await manager.send_event("ingestion:stopped", {"message": "Ingestion stopped by user"})
         return {"stopped": stopped}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -54,4 +51,9 @@ async def get_ingestion_status():
 
 @router.post("/stats")
 async def get_ingestion_stats(request: GetStatsRequest):
-    return DatabaseService(db_path=Path(request.db_path)).get_ingestion_stats()
+    try:
+        return DatabaseService(db_path=Path(request.db_path)).get_ingestion_stats()
+    except FileNotFoundError:
+        return {"total": 0, "pending": 0, "completed": 0, "failed": 0, "ingesting": 0}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

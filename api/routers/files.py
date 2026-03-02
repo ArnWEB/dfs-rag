@@ -1,5 +1,5 @@
 """Files API router."""
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 from typing import Any
 
 from api.services.database import DatabaseService
@@ -17,13 +17,25 @@ async def get_files(
     db_path: str | None = Query(None),
 ) -> dict[str, Any]:
     offset = (page - 1) * limit
-    files = DatabaseService(db_path=Path(db_path)).get_files(search=search, status=status, ingestion_status=ingestion_status, limit=limit, offset=offset)
-    total = DatabaseService(db_path=Path(db_path)).get_total_file_count(search=search, status=status, ingestion_status=ingestion_status)
+    try:
+        db_p = Path(db_path) if db_path else None
+        files = DatabaseService(db_path=db_p).get_files(search=search, status=status, ingestion_status=ingestion_status, limit=limit, offset=offset)
+        total = DatabaseService(db_path=db_p).get_total_file_count(search=search, status=status, ingestion_status=ingestion_status)
+    except FileNotFoundError:
+        return {"files": [], "pagination": {"page": page, "limit": limit, "total": 0, "pages": 0}}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     return {"files": files, "pagination": {"page": page, "limit": limit, "total": total, "pages": (total + limit - 1) // limit if total > 0 else 0}}
 
 @router.get("/{file_id}")
 async def get_file(file_id: int,db_path: str | None = Query(None) ) -> dict[str, Any]:
-    files = DatabaseService(db_path=Path(db_path)).get_files(limit=1, offset=file_id - 1)
-    if not files:
-        return {"error": "File not found"}
-    return files[0]
+    try:
+        db_p = Path(db_path) if db_path else None
+        files = DatabaseService(db_path=db_p).get_files(limit=1, offset=file_id - 1)
+        if not files:
+            raise HTTPException(status_code=404, detail="File not found")
+        return files[0]
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -133,7 +133,7 @@ export default function FilesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Files</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Folder View</h2>
           <p className="text-muted-foreground">
             Browse and search the manifest database
           </p>
@@ -166,141 +166,141 @@ export default function FilesPage() {
 
       {hasLoaded && (
         <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>File Manifest</span>
-            <Badge variant="outline">{total} files</Badge>
-          </CardTitle>
-          <CardDescription>
-            View discovered files and their ingestion status
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-1 items-center gap-2">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search files..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-8"
-                />
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>File Manifest</span>
+              <Badge variant="outline">{total} files</Badge>
+            </CardTitle>
+            <CardDescription>
+              View discovered files and their ingestion status
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-1 items-center gap-2">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search files..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="discovered">Discovered</SelectItem>
+                    <SelectItem value="error">Error</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={ingestionStatusFilter} onValueChange={setIngestionStatusFilter}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Ingestion" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Ingestion</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="ingesting">Ingesting</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="discovered">Discovered</SelectItem>
-                  <SelectItem value="error">Error</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={ingestionStatusFilter} onValueChange={setIngestionStatusFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Ingestion" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Ingestion</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="ingesting">Ingesting</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Path</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ingestion</TableHead>
-                  <TableHead>Last Seen</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                      Loading...
-                    </TableCell>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Path</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Ingestion</TableHead>
+                    <TableHead>Last Seen</TableHead>
                   </TableRow>
-                ) : files.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                      No files found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  files.map((file) => (
-                    <TableRow key={file.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {file.is_directory ? (
-                            <Folder className="h-4 w-4 text-yellow-500" />
-                          ) : (
-                            <FileText className="h-4 w-4 text-blue-500" />
-                          )}
-                          {file.file_name}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate text-muted-foreground">
-                        {file.parent_dir}
-                      </TableCell>
-                      <TableCell>{formatBytes(file.size)}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={file.status} />
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={file.ingestion_status} />
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {file.last_seen ? new Date(file.last_seen).toLocaleString() : "-"}
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        Loading...
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  ) : files.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        No files found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    files.map((file) => (
+                      <TableRow key={file.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {file.is_directory ? (
+                              <Folder className="h-4 w-4 text-yellow-500" />
+                            ) : (
+                              <FileText className="h-4 w-4 text-blue-500" />
+                            )}
+                            {file.file_name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate text-muted-foreground">
+                          {file.parent_dir}
+                        </TableCell>
+                        <TableCell>{formatBytes(file.size)}</TableCell>
+                        <TableCell>
+                          <StatusBadge status={file.status} />
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={file.ingestion_status} />
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {file.last_seen ? new Date(file.last_seen).toLocaleString() : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
 
-          <div className="mt-4 flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              Page {page} of {totalPages || 1}
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Page {page} of {totalPages || 1}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-        )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

@@ -92,7 +92,8 @@ class IngestionProcessor:
                 logger.info(f"Skipping already ingested: {file_record.file_name}")
                 self.repository.update_ingestion_status(
                     file_record.file_path,
-                    status="completed"
+                    status="completed",
+                    remarks="Skipped: Already ingested in previous run."
                 )
                 self.stats.total_skipped += 1
                 successful.append(file_record.file_path)
@@ -107,7 +108,8 @@ class IngestionProcessor:
         for file_record in files_to_upload:
             self.repository.update_ingestion_status(
                 file_record.file_path,
-                status="ingesting"
+                status="ingesting",
+                remarks="Preparing to upload to NVIDIA RAG API."
             )
         
         # Verify files exist
@@ -123,7 +125,8 @@ class IngestionProcessor:
                 self.repository.update_ingestion_status(
                     file_record.file_path,
                     status="failed",
-                    error="File not found on disk"
+                    error="File not found on disk",
+                    remarks="Skipped: The source file appears to have been deleted or moved from the DFS since discovery."
                 )
                 failed.append((file_record.file_path, "File not found"))
         
@@ -157,7 +160,8 @@ class IngestionProcessor:
             for file_record in existing_files:
                 self.repository.update_ingestion_status(
                     file_record.file_path,
-                    status="completed"
+                    status="completed",
+                    remarks=f"Successfully ingested and indexed. Task ID: {task_id}" if task_id else "Successfully ingested and indexed."
                 )
                 successful.append(file_record.file_path)
             
@@ -171,7 +175,8 @@ class IngestionProcessor:
                 self.repository.update_ingestion_status(
                     file_record.file_path,
                     status="failed",
-                    error=str(e)
+                    error=str(e),
+                    remarks=f"Failed to ingest: {e}"
                 )
                 failed.append((file_record.file_path, str(e)))
         

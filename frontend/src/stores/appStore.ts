@@ -7,7 +7,6 @@ interface AppState {
   ingestionStats: IngestionStats | null
   bootstrapRunning: boolean
   ingestionRunning: boolean
-  wsConnected: boolean
   activityLog: ActivityEvent[]
   settings: AppSettings
 
@@ -15,7 +14,6 @@ interface AppState {
   setIngestionStats: (stats: IngestionStats | null) => void
   setBootstrapRunning: (running: boolean) => void
   setIngestionRunning: (running: boolean) => void
-  setWsConnected: (connected: boolean) => void
   addActivityEvent: (event: Omit<ActivityEvent, "id" | "timestamp">) => void
   clearActivityLog: () => void
   updateSettings: (settings: Partial<AppSettings>) => void
@@ -30,7 +28,6 @@ export const useAppStore = create<AppState>()(
       ingestionStats: null,
       bootstrapRunning: false,
       ingestionRunning: false,
-      wsConnected: false,
       activityLog: [],
       settings: {
         dbPath: "",
@@ -43,8 +40,7 @@ export const useAppStore = create<AppState>()(
       setIngestionStats: (stats) => set({ ingestionStats: stats }),
       setBootstrapRunning: (running) => set({ bootstrapRunning: running }),
       setIngestionRunning: (running) => set({ ingestionRunning: running }),
-      setWsConnected: (connected) => set({ wsConnected: connected }),
-      
+
       addActivityEvent: (event) =>
         set((state) => ({
           activityLog: [
@@ -56,9 +52,9 @@ export const useAppStore = create<AppState>()(
             ...state.activityLog.slice(0, 99),
           ],
         })),
-      
+
       clearActivityLog: () => set({ activityLog: [] }),
-      
+
       updateSettings: (newSettings) =>
         set((state) => ({
           settings: { ...state.settings, ...newSettings },

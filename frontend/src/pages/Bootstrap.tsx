@@ -117,7 +117,7 @@ export default function BootstrapPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Bootstrap</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Quick Bootstrap</h2>
         <p className="text-muted-foreground">
           Scan DFS share and build manifest database
         </p>
@@ -128,7 +128,7 @@ export default function BootstrapPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FolderSearch className="h-5 w-5" />
-              Bootstrap Scan
+              Quick Bootstrap Scan
             </CardTitle>
             <CardDescription>
               Scan file shares and extract metadata + ACLs
@@ -248,7 +248,7 @@ export default function BootstrapPage() {
                   ) : (
                     <Play className="mr-2 h-4 w-4" />
                   )}
-                  Start Scan
+                  Start Quick Bootstrap
                 </Button>
               ) : (
                 <Button variant="destructive" onClick={handleStop} disabled={loading}>
@@ -257,7 +257,7 @@ export default function BootstrapPage() {
                   ) : (
                     <Square className="mr-2 h-4 w-4" />
                   )}
-                  Stop Scan
+                  Stop Quick Bootstrap
                 </Button>
               )}
             </div>

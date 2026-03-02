@@ -1,7 +1,7 @@
 {
-  "offset": 0,
-  "batch_num": 0,
-  "total_processed": 0,
-  "total_failed": 0,
-  "timestamp": "2026-02-19T17:55:36.485273"
+  "offset": 3,
+  "batch_num": 1,
+  "total_processed": 3,
+  "total_failed": 3,
+  "timestamp": "2026-03-02T10:47:20.993903"
 }

@@ -1,7 +1,7 @@
 import axios from "axios"
 import { keycloak } from "./keycloak"
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000"
+const API_BASE_URL = import.meta.env.VITE_API_URL || ""
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -79,6 +79,7 @@ export interface FileRecord {
   ingestion_error: string | null
   ingested_at: string | null
   error: string | null
+  remarks?: string | null
   is_directory: boolean
   first_seen: string
   last_seen: string
@@ -110,6 +111,7 @@ export const bootstrapApi = {
     timeout?: number
     log_level?: string
     acl_extractor?: string
+    session_id?: string
   }) => api.post("/api/bootstrap/start", config),
 
   stop: () => api.post("/api/bootstrap/stop"),
@@ -130,6 +132,7 @@ export const ingestionApi = {
     create_collection?: boolean
     resume?: boolean
     log_level?: string
+    session_id?: string
   }) => api.post("/api/ingestion/start", config),
 
   stop: () => api.post("/api/ingestion/stop"),
@@ -152,4 +155,21 @@ export const filesApi = {
 
 export const healthApi = {
   check: () => api.get<HealthStatus>("/api/health"),
+}
+
+export interface SessionRecord {
+  id: string
+  name: string
+  status: string
+  dfs_path: string
+  db_path: string
+  created_at: string
+  updated_at: string
+}
+
+export const sessionsApi = {
+  list: (limit = 50, offset = 0) => api.get<SessionRecord[]>("/api/sessions", { params: { limit, offset } }),
+  create: (name: string, dfs_path: string) => api.post<SessionRecord>("/api/sessions", { name, dfs_path }),
+  get: (id: string) => api.get<SessionRecord>(`/api/sessions/${id}`),
+  update: (id: string, data: Partial<SessionRecord>) => api.patch<SessionRecord>(`/api/sessions/${id}`, data),
 }
