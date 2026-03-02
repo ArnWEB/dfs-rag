@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom"
 import { Play, Square, ArrowLeft, Upload, FolderSearch } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
 import { Progress } from "../components/ui/progress"
 import { Badge } from "../components/ui/badge"
 import { useAppStore } from "../stores/appStore"
@@ -39,6 +41,7 @@ export default function SessionDashboardPage() {
 
     const [bootstrapStats, setBootstrapStats] = useState<BootstrapStats | null>(null)
     const [ingestionStats, setIngestionStats] = useState<IngestionStats | null>(null)
+    const [collectionName, setCollectionName] = useState("documents")
 
     // File Explorer states
     const [files, setFiles] = useState<FileRecord[]>([])
@@ -138,6 +141,7 @@ export default function SessionDashboardPage() {
         try {
             await ingestionApi.start({
                 db_path: session.db_path,
+                collection_name: collectionName,
                 session_id: session.id,
             })
             setIngestionRunning(true)
@@ -293,12 +297,22 @@ export default function SessionDashboardPage() {
                                         <div className="text-xl font-bold">{ingestionStats?.total || 0}</div>
                                         <div className="text-xs text-muted-foreground uppercase tracking-wider">To Ingest</div>
                                     </div>
-                                    <div className="rounded-md bg-muted/50 p-3">
+                                <div className="rounded-md bg-muted/50 p-3">
                                         <div className="text-xl font-bold text-green-600">{ingestionStats?.completed || 0}</div>
                                         <div className="text-xs text-muted-foreground uppercase tracking-wider">Completed</div>
                                     </div>
                                 </div>
 
+                                <div className="space-y-2">
+                                    <Label htmlFor="collection-name">Collection Name</Label>
+                                    <Input
+                                        id="collection-name"
+                                        placeholder="documents"
+                                        value={collectionName}
+                                        onChange={(e) => setCollectionName(e.target.value)}
+                                        disabled={ingestionRunning || loading}
+                                    />
+                                </div>
 
                                 <div className="flex gap-2">
                                     {!ingestionRunning ? (

@@ -1,4 +1,5 @@
 """Process manager for running bootstrap and ingestion."""
+from traceback import print_tb
 import asyncio
 import logging
 import signal
@@ -61,6 +62,8 @@ class ProcessManager:
                 raise RuntimeError("Bootstrap process already running")
             
             job_id = str(uuid4())
+
+            print("start_process_running")
             
             # Run bootstrap from bootstrap directory using uv
             cmd = [
