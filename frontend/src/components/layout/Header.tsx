@@ -1,33 +1,26 @@
-import { Activity, RefreshCw } from "lucide-react"
+import { Activity } from "lucide-react"
 import { useAppStore } from "../../stores/appStore"
-import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import { bootstrapApi, ingestionApi } from "../../lib/api"
 
 export function Header() {
   const {
-    bootstrapRunning,
     settings,
     setBootstrapStats,
     setIngestionStats,
-    setBootstrapRunning,
-    setIngestionRunning,
   } = useAppStore()
 
   const handleRefresh = async () => {
-    if (!settings.dbPath) return
     try {
-      const [bootstrapStatus, ingestionStatus, bootstrapStats, ingestionStats] = await Promise.all([
-        bootstrapApi.getStatus(),
-        ingestionApi.getStatus(),
-        bootstrapApi.getStats({ db_path: settings.dbPath }),
-        ingestionApi.getStats({ db_path: settings.dbPath }),
-      ])
-
-      setBootstrapRunning(bootstrapStatus.data.running)
-      setIngestionRunning(ingestionStatus.data.running)
-      setBootstrapStats(bootstrapStats.data)
-      setIngestionStats(ingestionStats.data)
+      // Fetch stats if we have a dbPath
+      if (settings.dbPath) {
+        const [bStats, iStats] = await Promise.all([
+          bootstrapApi.getStats({ db_path: settings.dbPath }),
+          ingestionApi.getStats({ db_path: settings.dbPath })
+        ])
+        setBootstrapStats(bStats.data)
+        setIngestionStats(iStats.data)
+      }
     } catch (error) {
       console.error("Failed to refresh status:", error)
     }
@@ -37,15 +30,6 @@ export function Header() {
     <header className="flex h-14 items-center justify-between border-b bg-white px-6 shadow-nav">
       <div className="flex items-center space-x-4">
         <h1 className="text-lg font-semibold text-bank-blue-dark">EXIM RAG Ingest Manager</h1>
-
-        <div className="flex items-center space-x-2">
-          {bootstrapRunning && (
-            <Badge variant="warning" className="gap-1">
-              <RefreshCw className="h-3 w-3 animate-spin" />
-              Bootstrap Running
-            </Badge>
-          )}
-        </div>
       </div>
 
       <div className="flex items-center space-x-2">

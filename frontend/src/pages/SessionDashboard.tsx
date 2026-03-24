@@ -28,10 +28,6 @@ export default function SessionDashboardPage() {
     const navigate = useNavigate()
 
     const {
-        bootstrapRunning,
-        ingestionRunning,
-        setBootstrapRunning,
-        setIngestionRunning,
         addActivityEvent
     } = useAppStore()
 
@@ -77,6 +73,7 @@ export default function SessionDashboardPage() {
                 ])
                 setBootstrapStats(bStats.data)
                 setIngestionStats(iStats.data)
+                
                 if (session?.db_path === resp.data.db_path) {
                     // Update only stats
                 } else {
@@ -107,8 +104,9 @@ export default function SessionDashboardPage() {
                 db_path: session.db_path,
                 session_id: session.id,
             })
-            setBootstrapRunning(true)
             addActivityEvent({ type: "session:start_bootstrap", message: `Started bootstrap for ${session.name}` })
+            // Refresh to get updated session status
+            await fetchSession()
         } catch (err: any) {
             console.error(err)
             const errorMsg = err.response?.data?.detail || "Failed to start bootstrap"
@@ -121,7 +119,7 @@ export default function SessionDashboardPage() {
     const handleStopBootstrap = async () => {
         try {
             await bootstrapApi.stop()
-            setBootstrapRunning(false)
+            await fetchSession()
         } catch (err) {
             console.error(err)
         }
@@ -137,8 +135,9 @@ export default function SessionDashboardPage() {
                 collection_name: collectionName,
                 session_id: session.id,
             })
-            setIngestionRunning(true)
             addActivityEvent({ type: "session:start_ingestion", message: `Started ingestion for ${session.name}` })
+            // Refresh to get updated session status
+            await fetchSession()
         } catch (err: any) {
             console.error(err)
             const detail = err.response?.data?.detail
@@ -157,8 +156,9 @@ export default function SessionDashboardPage() {
         if (!session) return
         try {
             await ingestionApi.stop({ session_id: session.id })
-            setIngestionRunning(false)
             addActivityEvent({ type: "session:stop_ingestion", message: `Stopped ingestion for ${session.name}` })
+            // Refresh to get updated session status
+            await fetchSession()
         } catch (err: any) {
             console.error(err)
             setError(err.response?.data?.detail || "Failed to stop ingestion")
@@ -233,8 +233,8 @@ export default function SessionDashboardPage() {
                                         <FolderSearch className="h-5 w-5 text-blue-500" />
                                         Phase 1: Quick Bootstrap
                                     </div>
-                                    <Badge variant={bootstrapRunning ? "warning" : "secondary"}>
-                                        {bootstrapRunning ? "Running" : "Idle"}
+                                    <Badge variant={session.status === 'bootstrapping' ? "warning" : session.status === 'bootstrap_completed' ? "success" : session.status === 'failed' ? "destructive" : "secondary"}>
+                                        {session.status === 'bootstrapping' ? "Running" : session.status === 'bootstrap_completed' ? "Completed" : session.status === 'failed' ? "Failed" : "Idle"}
                                     </Badge>
                                 </CardTitle>
                                 <CardDescription>Scan DFS and discover files</CardDescription>
@@ -260,8 +260,8 @@ export default function SessionDashboardPage() {
                                 </div>
 
                                 <div className="flex gap-2">
-                                    {!bootstrapRunning ? (
-                                        <Button onClick={handleStartBootstrap} disabled={loading || ingestionRunning} className="w-full">
+                                    {session.status !== 'bootstrapping' ? (
+                                        <Button onClick={handleStartBootstrap} disabled={loading || session.status === 'ingesting'} className="w-full">
                                             <Play className="mr-2 h-4 w-4" /> Start Quick Bootstrap
                                         </Button>
                                     ) : (
@@ -281,8 +281,8 @@ export default function SessionDashboardPage() {
                                         <Upload className="h-5 w-5 text-purple-500" />
                                         Phase 2: Ingest
                                     </div>
-                                    <Badge variant={ingestionRunning ? "warning" : "secondary"}>
-                                        {ingestionRunning ? "Running" : "Idle"}
+                                    <Badge variant={session.status === 'ingesting' ? "warning" : session.status === 'completed' ? "success" : session.status === 'failed' ? "destructive" : "secondary"}>
+                                        {session.status === 'ingesting' ? "Running" : session.status === 'completed' ? "Completed" : session.status === 'failed' ? "Failed" : "Idle"}
                                     </Badge>
                                 </CardTitle>
                                 <CardDescription>Vectorize and store discovered files</CardDescription>
@@ -314,13 +314,13 @@ export default function SessionDashboardPage() {
                                         placeholder="documents"
                                         value={collectionName}
                                         onChange={(e) => setCollectionName(e.target.value)}
-                                        disabled={ingestionRunning || loading}
+                                        disabled={session.status === 'ingesting' || loading}
                                     />
                                 </div>
 
                                 <div className="flex gap-2">
-                                    {!ingestionRunning ? (
-                                        <Button onClick={handleStartIngestion} disabled={loading || bootstrapRunning || session.status === 'created' || session.status === 'bootstrapping'} className="w-full bg-purple-600 hover:bg-purple-700">
+                                    {session.status !== 'ingesting' ? (
+                                        <Button onClick={handleStartIngestion} disabled={loading || session.status === 'created' || session.status === 'bootstrapping'} className="w-full bg-purple-600 hover:bg-purple-700">
                                             <Play className="mr-2 h-4 w-4" /> Start Ingest
                                         </Button>
                                     ) : (

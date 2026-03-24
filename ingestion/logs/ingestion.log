@@ -287,3 +287,11 @@ RuntimeError: Database error updating status: no such column: remarks
 2026-03-02 19:01:29,300 - ingestion.processor - ERROR - Batch 1 upload failed: Upload failed after 3 attempts: Upload request failed: HTTPConnectionPool(host='localhost', port=8082): Max retries exceeded with url: /v1/documents (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8082): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
 2026-03-02 19:01:29,326 - ingestion.processor - INFO - No more pending files. Ingestion complete!
 2026-03-02 19:01:29,327 - ingestion.main - INFO - Ingestion completed successfully
+2026-03-24 15:43:26,684 - ingestion.main - INFO - ============================================================
+2026-03-24 15:43:26,684 - ingestion.main - INFO - NVIDIA RAG Ingestion Started
+2026-03-24 15:43:26,684 - ingestion.main - INFO - ============================================================
+2026-03-24 15:43:26,685 - ingestion.main - INFO - Database: C:\Arnab's Projects\opencode\dfs_rag\api\manifest.db
+2026-03-24 15:43:26,685 - ingestion.main - INFO - Ingestor: http://localhost:8082
+2026-03-24 15:43:26,685 - ingestion.main - INFO - Collection: test
+2026-03-24 15:43:26,685 - ingestion.main - INFO - Batch size: 100
+2026-03-24 15:43:26,685 - ingestion.main - ERROR - Database not found: C:\Arnab's Projects\opencode\dfs_rag\api\manifest.db

@@ -127,15 +127,15 @@ export default function DashboardPage() {
       return
     }
     try {
-      const [bootstrapStatus, ingestionStatus, bootstrapStatsRes, ingestionStatsRes] = await Promise.all([
+      const [bootstrapStatus, activeIngestions, bootstrapStatsRes, ingestionStatsRes] = await Promise.all([
         bootstrapApi.getStatus(),
-        ingestionApi.getStatus(),
+        ingestionApi.getActive(),
         bootstrapApi.getStats({ db_path: currentDbPath }),
         ingestionApi.getStats({ db_path: currentDbPath }),
       ])
 
       setBootstrapRunning(bootstrapStatus.data.running)
-      setIngestionRunning(ingestionStatus.data.running)
+      setIngestionRunning(activeIngestions.data.count > 0)
       setBootstrapStats(bootstrapStatsRes.data)
       setIngestionStats(ingestionStatsRes.data)
     } catch (error) {
