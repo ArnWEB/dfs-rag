@@ -74,6 +74,7 @@ export default function IngestionPage() {
         create_collection: createCollection,
         resume: resume,
         log_level: logLevel,
+        session_id: "",
       })
 
       setIngestionRunning(true)
@@ -96,7 +97,7 @@ export default function IngestionPage() {
   const handleStop = async () => {
     setLoading(true)
     try {
-      await ingestionApi.stop()
+      await ingestionApi.stop({ session_id: "" })
       setIngestionRunning(false)
       addActivityEvent({
         type: "ingestion:stopped",

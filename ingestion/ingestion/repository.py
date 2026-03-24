@@ -55,14 +55,14 @@ class IngestionRepository:
         
         try:
             # Query files with status='discovered' that haven't been ingested
-            # Include pending and failed for retry
+            # Only include NULL (never attempted) and failed (for retry)
+            # Do NOT include 'pending' or 'ingesting' to prevent duplicates
             cursor.execute("""
                 SELECT file_path, file_name, parent_dir, size, mtime, 
                        raw_acl, acl_captured, status
                 FROM manifest
                 WHERE status = 'discovered'
                   AND (ingestion_status IS NULL 
-                       OR ingestion_status = 'pending' 
                        OR ingestion_status = 'failed')
                 ORDER BY file_path
                 LIMIT ? OFFSET ?

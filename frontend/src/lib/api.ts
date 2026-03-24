@@ -132,12 +132,14 @@ export const ingestionApi = {
     create_collection?: boolean
     resume?: boolean
     log_level?: string
-    session_id?: string
+    session_id: string
   }) => api.post("/api/ingestion/start", config),
 
-  stop: () => api.post("/api/ingestion/stop"),
+  stop: (config: { session_id: string }) => api.post("/api/ingestion/stop", config),
 
-  getStatus: () => api.get<IngestionStatus>("/api/ingestion/status"),
+  getStatus: (session_id?: string) => api.get<IngestionStatus>("/api/ingestion/status", { params: { session_id } }),
+
+  getActive: () => api.get<{ count: number; active_ingestions: any[] }>("/api/ingestion/active"),
 
   getStats: (config: { db_path: string }) => api.post<IngestionStats>("/api/ingestion/stats", config),
 }

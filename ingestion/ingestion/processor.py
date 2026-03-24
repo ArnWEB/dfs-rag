@@ -142,7 +142,7 @@ class IngestionProcessor:
         
         # Upload with retry logic
         try:
-            response = self._upload_with_retry(file_paths, payload)
+            response = self._upload_batch(file_paths, payload)
             
             # Get task_id from response
             task_id = (
@@ -182,12 +182,12 @@ class IngestionProcessor:
         
         return successful, failed
     
-    def _upload_with_retry(
+    def _upload_batch(
         self,
         file_paths: list[Path],
         payload: dict,
     ) -> dict:
-        """Upload files with retry logic.
+        """Upload files without retry - send once, mark failed on error.
         
         Args:
             file_paths: List of file paths
@@ -195,38 +195,13 @@ class IngestionProcessor:
             
         Returns:
             Response JSON from API
-            
-        Raises:
-            IngestionError: If all retries exhausted
         """
-        last_error = None
-        
-        for attempt in range(self.settings.max_retries):
-            try:
-                response = self.client.upload_documents(
-                    files=file_paths,
-                    payload=payload,
-                    timeout=self.settings.request_timeout,
-                )
-                logger.debug(f"Upload successful after {attempt + 1} attempt(s)")
-                return response
-                
-            except IngestionError as e:
-                last_error = e
-                logger.warning(
-                    f"Upload attempt {attempt + 1}/{self.settings.max_retries} failed: {e}"
-                )
-                
-                if attempt < self.settings.max_retries - 1:
-                    # Exponential backoff
-                    delay = self.settings.retry_delay * (2 ** attempt)
-                    logger.debug(f"Retrying in {delay}s...")
-                    time.sleep(delay)
-        
-        # All retries exhausted
-        raise IngestionError(
-            f"Upload failed after {self.settings.max_retries} attempts: {last_error}"
+        response = self.client.upload_documents(
+            files=file_paths,
+            payload=payload,
+            timeout=self.settings.request_timeout,
         )
+        return response
     
     def _build_payload(self, files: list[FileRecord]) -> dict:
         """Build upload payload.

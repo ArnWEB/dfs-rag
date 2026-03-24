@@ -95,14 +95,7 @@ export default function SessionDashboardPage() {
 
     useEffect(() => {
         fetchSession()
-
-        // Auto refresh while running
-        let interval: ReturnType<typeof setInterval>
-        if (bootstrapRunning || ingestionRunning) {
-            interval = setInterval(fetchSession, 2000)
-        }
-        return () => clearInterval(interval)
-    }, [fetchSession, bootstrapRunning, ingestionRunning])
+    }, [id])
 
     const handleStartBootstrap = async () => {
         if (!session) return
@@ -148,19 +141,27 @@ export default function SessionDashboardPage() {
             addActivityEvent({ type: "session:start_ingestion", message: `Started ingestion for ${session.name}` })
         } catch (err: any) {
             console.error(err)
-            const errorMsg = err.response?.data?.detail || "Failed to start ingestion"
-            setError(errorMsg)
+            const detail = err.response?.data?.detail
+            if (err.response?.status === 400 && detail?.active_ingestions) {
+                const users = detail.active_ingestions.map((i: any) => i.user_name || i.user_id).join(', ')
+                setError(`Max ingestions (5) reached. Currently running: ${users}`)
+            } else {
+                setError(typeof detail === 'string' ? detail : "Failed to start ingestion")
+            }
         } finally {
             setLoading(false)
         }
     }
 
     const handleStopIngestion = async () => {
+        if (!session) return
         try {
-            await ingestionApi.stop()
+            await ingestionApi.stop({ session_id: session.id })
             setIngestionRunning(false)
-        } catch (err) {
+            addActivityEvent({ type: "session:stop_ingestion", message: `Stopped ingestion for ${session.name}` })
+        } catch (err: any) {
             console.error(err)
+            setError(err.response?.data?.detail || "Failed to stop ingestion")
         }
     }
 

@@ -7,7 +7,6 @@ import { bootstrapApi, ingestionApi } from "../../lib/api"
 export function Header() {
   const {
     bootstrapRunning,
-    ingestionRunning,
     settings,
     setBootstrapStats,
     setIngestionStats,
@@ -44,13 +43,6 @@ export function Header() {
             <Badge variant="warning" className="gap-1">
               <RefreshCw className="h-3 w-3 animate-spin" />
               Bootstrap Running
-            </Badge>
-          )}
-
-          {ingestionRunning && (
-            <Badge variant="warning" className="gap-1">
-              <RefreshCw className="h-3 w-3 animate-spin" />
-              Ingestion Running
             </Badge>
           )}
         </div>

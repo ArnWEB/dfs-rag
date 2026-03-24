@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Layout } from "@/components/layout/Layout"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
@@ -11,68 +10,8 @@ import LoginPage from "@/pages/Login"
 import SessionsPage from "./pages/Sessions"
 import SessionDashboardPage from "./pages/SessionDashboard"
 import { AuthProvider } from "@/lib/auth"
-import { useAppStore } from "@/stores/appStore"
-import { bootstrapApi, ingestionApi } from "@/lib/api"
 
 function AppContent() {
-  const {
-    setBootstrapRunning,
-    setIngestionRunning,
-    addActivityEvent,
-  } = useAppStore()
-
-  useEffect(() => {
-    let mounted = true
-    let prevBsRunning = false
-    let prevInRunning = false
-
-    const checkStatus = async () => {
-      if (!mounted) return
-      try {
-        const [bsRes, inRes] = await Promise.all([
-          bootstrapApi.getStatus(),
-          ingestionApi.getStatus()
-        ])
-        if (!mounted) return
-
-        const isBsRunning = bsRes.data.running
-        const isInRunning = inRes.data.running
-
-        setBootstrapRunning(isBsRunning)
-        setIngestionRunning(isInRunning)
-
-        if (isBsRunning && !prevBsRunning) {
-          addActivityEvent({ type: "bootstrap:started", message: "Bootstrap started" })
-        } else if (!isBsRunning && prevBsRunning) {
-          addActivityEvent({ type: "bootstrap:completed", message: "Bootstrap completed or stopped" })
-        }
-
-        if (isInRunning && !prevInRunning) {
-          addActivityEvent({ type: "ingestion:started", message: "Ingestion started" })
-        } else if (!isInRunning && prevInRunning) {
-          addActivityEvent({ type: "ingestion:completed", message: "Ingestion completed or stopped" })
-        }
-
-        prevBsRunning = isBsRunning
-        prevInRunning = isInRunning
-
-      } catch (e) {
-        console.error("Failed status poll", e)
-      }
-    }
-
-    // Initial check
-    checkStatus()
-
-    // 10-second polling
-    const interval = setInterval(checkStatus, 10000)
-
-    return () => {
-      mounted = false
-      clearInterval(interval)
-    }
-  }, [setBootstrapRunning, setIngestionRunning, addActivityEvent])
-
   return (
     <Layout>
       <Routes>
