@@ -298,6 +298,20 @@ class ProcessManager:
             return True
 
     async def check_process_health(self):
+        # Check bootstrap status
+        if self._bootstrap_status.running and self._bootstrap_process:
+            if self._bootstrap_process.returncode is not None:
+                logger.info(f"Bootstrap process has finished with code {self._bootstrap_process.returncode}")
+                self._bootstrap_status.running = False
+                if self._bootstrap_status.session_id:
+                    try:
+                        from api.services.sessions_db import sessions_db
+                        new_status = "bootstrap_completed" if self._bootstrap_process.returncode == 0 else "failed"
+                        sessions_db.update_session(self._bootstrap_status.session_id, {"status": new_status})
+                    except Exception:
+                        pass
+        
+        # Check ingestion statuses
         for session_id in list(self._ingestion_processes.keys()):
             status = self._ingestion_statuses.get(session_id)
             process = self._ingestion_processes.get(session_id)

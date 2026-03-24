@@ -39,18 +39,6 @@ async def monitor_processes():
     while True:
         await asyncio.sleep(2)
         await process_manager.check_process_health()
-        bootstrap_status = process_manager.bootstrap_status
-        if not bootstrap_status.running and bootstrap_status.job_id:
-            if bootstrap_status.session_id:
-                from api.services.sessions_db import sessions_db
-                sessions_db.update_session(bootstrap_status.session_id, {"status": "bootstrap_completed"})
-            process_manager._bootstrap_status.job_id = None
-        ingestion_status = process_manager.ingestion_status
-        if not ingestion_status.running and ingestion_status.job_id:
-            if ingestion_status.session_id:
-                from api.services.sessions_db import sessions_db
-                sessions_db.update_session(ingestion_status.session_id, {"status": "completed"})
-            process_manager._ingestion_status.job_id = None
 
 
 app = FastAPI(title="DFS RAG API", version="1.0.0", lifespan=lifespan)
@@ -68,7 +56,13 @@ app.include_router(sessions.router, tags=["sessions"])
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "healthy", "bootstrap_running": process_manager.bootstrap_status.running, "ingestion_running": process_manager.ingestion_status.running}
+    active_ingestions = process_manager.list_active_ingestions()
+    return {
+        "status": "healthy",
+        "bootstrap_running": process_manager.bootstrap_status.running,
+        "ingestion_running": len(active_ingestions) > 0,
+        "active_ingestions_count": len(active_ingestions)
+    }
 
 
 

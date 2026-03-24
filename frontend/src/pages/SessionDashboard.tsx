@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Play, Square, ArrowLeft, Upload, FolderSearch } from "lucide-react"
+import { Play, Square, ArrowLeft, Upload, FolderSearch, RefreshCw } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
@@ -188,6 +188,9 @@ export default function SessionDashboardPage() {
                         }>
                             {session.status}
                         </Badge>
+                        <Button variant="ghost" size="sm" onClick={fetchSession} disabled={loading}>
+                            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                        </Button>
                     </div>
                 </div>
             </div>
